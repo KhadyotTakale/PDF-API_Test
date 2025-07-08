@@ -3,10 +3,14 @@ import "./App.css";
 
 const App = () => {
   const [url, setUrl] = useState("");
+  const [callbackUrl, setCallbackUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
-    if (!url) return alert("Please enter a valid URL");
+    if (!url || !callbackUrl) {
+      alert("Please enter both URL and Callback URL");
+      return;
+    }
 
     setLoading(true);
 
@@ -17,8 +21,12 @@ const App = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "WIMSUP-API-KEY": import.meta.env.VITE_API_KEY, 
           },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({
+            url,
+            callback_url: callbackUrl,
+          }),
         }
       );
 
@@ -43,6 +51,7 @@ const App = () => {
   return (
     <div className="container">
       <h1 className="title">PDF Generator</h1>
+
       <input
         type="text"
         placeholder="Enter URL to convert into PDF"
@@ -51,6 +60,16 @@ const App = () => {
         className="input-box"
         disabled={loading}
       />
+
+      <input
+        type="text"
+        placeholder="Enter your Callback URL"
+        value={callbackUrl}
+        onChange={(e) => setCallbackUrl(e.target.value)}
+        className="input-box"
+        disabled={loading}
+      />
+
       <button
         className="download-button"
         onClick={handleDownload}
