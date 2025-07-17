@@ -3,12 +3,12 @@ import "./App.css";
 
 const App = () => {
   const [url, setUrl] = useState("");
-  const [callbackUrl, setCallbackUrl] = useState("");
+  const [invoiceId, setInvoiceId] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleDownload = async () => {
-    if (!url || !callbackUrl) {
-      alert("Please enter both URL and Callback URL");
+    if (!url) {
+      alert("Please enter the URL");
       return;
     }
 
@@ -21,12 +21,8 @@ const App = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "WIMSUP-API-KEY": import.meta.env.VITE_API_KEY, 
           },
-          body: JSON.stringify({
-            url,
-            callback_url: callbackUrl,
-          }),
+          body: JSON.stringify({ url }),
         }
       );
 
@@ -36,10 +32,13 @@ const App = () => {
         return;
       }
 
+      const idFromHeader = response.headers.get("X-INVOICE-ID");
+      setInvoiceId(idFromHeader); // show on UI
+
       const blob = await response.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "invoice.pdf";
+      link.download = `${idFromHeader || "invoice"}.pdf`;
       link.click();
     } catch (error) {
       alert("Something went wrong!");
@@ -54,18 +53,9 @@ const App = () => {
 
       <input
         type="text"
-        placeholder="Enter URL to convert into PDF"
+        placeholder="Enter Invoice URL"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        className="input-box"
-        disabled={loading}
-      />
-
-      <input
-        type="text"
-        placeholder="Enter your Callback URL"
-        value={callbackUrl}
-        onChange={(e) => setCallbackUrl(e.target.value)}
         className="input-box"
         disabled={loading}
       />
@@ -77,6 +67,12 @@ const App = () => {
       >
         {loading ? "Generating PDF..." : "Download PDF"}
       </button>
+
+      {invoiceId && (
+        <div className="invoice-id-display">
+          ✅ Extracted Invoice ID: <strong>{invoiceId}</strong>
+        </div>
+      )}
     </div>
   );
 };
